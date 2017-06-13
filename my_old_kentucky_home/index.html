@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>My Old Kentucky Home</title>
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+<h1 id="title">My Old Kentucky Home</h1>
+
+<video src="https://www.cs.tufts.edu/comp/20/my_old_kentucky_home.mp4" id="music_video" controls></video>
+<div id="lyrics"></div>
+
+
+<script>
+	// Complete this section and create a CSS file named style.css
+	var video = document.getElementById("music_video");
+	var lyrics = document.getElementById("lyrics");
+	video.addEventListener("timeupdate", function() {
+		if (video.currentTime > 7 && video.currentTime < 10.75) {
+			lyrics.innerHTML = "<p>The sun shines bright in My Old Kentucky Home,</p>";
+		} else if (video.currentTime > 10.75 && video.currentTime < 11.6) {
+			lyrics.innerHTML = "<p>The sun shines bright in My Old Kentucky Home,</p><br /><div class='image' id='old'></div>";
+		} else if (video.currentTime > 11.6 && video.currentTime < 12.4) {
+			lyrics.innerHTML = "<p>The sun shines bright in My Old Kentucky Home,</p><br /><div class='image' id='kentucky'></div>";
+		} else if (video.currentTime > 12.4 && video.currentTime < 13.2) {
+			lyrics.innerHTML = "<p>The sun shines bright in My Old Kentucky Home,</p><br /><div class='image' id='home'></div>";
+		} else if (video.currentTime > 13.5 && video.currentTime < 20) {
+			lyrics.innerHTML = "<p>'Tis summer, the people are gay;</p>";
+		} else if (video.currentTime > 20.5 && video.currentTime < 26.5) {
+			lyrics.innerHTML = "<p>The corn-top's ripe and the meadow's in the bloom</p>";
+		} else if (video.currentTime > 27 && video.currentTime < 33) {
+			lyrics.innerHTML = "<p>While the birds make music all the day.</p>";
+		} else if (video.currentTime > 35 && video.currentTime < 40.75) {
+			lyrics.innerHTML = "<p>The young folks roll on the little cabin floor,</p>";
+		} else if (video.currentTime > 41 && video.currentTime < 47.5) {
+			lyrics.innerHTML = "<p>All merry, all happy and bright;</p>";
+		} else if (video.currentTime > 48 && video.currentTime < 54) {
+			lyrics.innerHTML = "<p>By 'n' by hard times comes a knocking at the door,</p>";
+		} else if (video.currentTime > 55 && video.currentTime < 56) {
+			lyrics.innerHTML = "<p>Then My Old Kentucky Home, good night!</p>";
+		} else if (video.currentTime > 56 && video.currentTime < 56.5) {
+			lyrics.innerHTML = "<p>Then My Old Kentucky Home, good night!</p><br /><div class='image' id='old'></div>";
+		} else if (video.currentTime > 56.5 && video.currentTime < 57.5) {
+			lyrics.innerHTML = "<p>Then My Old Kentucky Home, good night!</p><br /><div class='image' id='kentucky'></div>";
+		} else if (video.currentTime > 57.5 && video.currentTime < 59) {
+			lyrics.innerHTML = "<p>Then My Old Kentucky Home, good night!</p><br /><div class='image' id='home'></div>";
+		} else if (video.currentTime > 59 && video.currentTime < 62.5) {
+			lyrics.innerHTML = "<p>Then My Old Kentucky Home, good night!</p>";
+		} else if (video.currentTime > 62.5 && video.currentTime < 67.5) {
+			lyrics.innerHTML = "<p>Weep no more my lady</p>";
+		} else if (video.currentTime > 68 && video.currentTime < 74) {
+			lyrics.innerHTML = "<p>Oh weep no more today;</p>";
+		} else if (video.currentTime > 75 && video.currentTime < 78.75) {
+			lyrics.innerHTML = "<p>We will sing one song</p>";
+		} else if (video.currentTime > 79 && video.currentTime < 80) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home</p>";
+		} else if (video.currentTime > 80 && video.currentTime < 81.25) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home</p><br /><div class='image' id='old'></div>";
+		} else if (video.currentTime > 81.25 && video.currentTime < 82) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home</p><br /><div class='image' id='kentucky'></div>";
+		} else if (video.currentTime > 82 && video.currentTime < 82.5) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home</p><br /><div class='image' id='home'></div>";
+		} else if (video.currentTime > 82.5 && video.currentTime < 84) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home, far away</p>";
+		} else if (video.currentTime > 84 && video.currentTime < 84.75) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home, far away</p><br /><div class='image' id='old'></div>";
+		} else if (video.currentTime > 84.75 && video.currentTime < 85.5) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home, far away</p><br /><div class='image' id='kentucky'></div>";
+		} else if (video.currentTime > 85.5 && video.currentTime < 86.5) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home, far away</p><br /><div class='image' id='home'></div>";
+		} else if (video.currentTime > 86.5 && video.currentTime < 92) {
+			lyrics.innerHTML = "<p>For My Old Kentucky Home, far away</p>";
+		} else {
+			lyrics.innerHTML = "<p></p>";
+		}
+ 	}, false);
+</script>
+</body>
+</html>	
