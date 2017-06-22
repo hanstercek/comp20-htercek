@@ -1,17 +1,17 @@
-# messages README
-# By: htercek
-# On: 6/13/17
-# Tufts COMP-20 Lab 8 mbta
+# mbta Part 2 README
+## By: htercek
+## On: 6/21/17
+# Tufts COMP-20 Lab 8 Part 2 mbta
 # Implemented:
-#       Center map at South Station
-#       All Red Line stops and custom icons
-#       Polylines between stops
-#       Separate CSS and JavaScript sheets
+###       Determine Location and Place Pin
+###       Clicking subway line renders infobox with next train info
+#####           This doesn't fully work; prints to console
 # Unimplemented:
-#       JSON for stop locations
-#       Modularity
-#       Orange and Blue Line stops
+###     Clicking on personal pin renders info
+#####           Couldn't get calculate distance func to work
+###     Polyline connected to nearest stop
+#####           Couldn't get calc distance func to work
 # Collaborators:
 # 
 # Hours Logged:
-#       6
+#       12+ (really struggling with idea of IFEE)

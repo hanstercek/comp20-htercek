@@ -1,0 +1,35 @@
+[
+	{
+		"color": "#FF0000"	
+	},
+	{
+		"name": "JFK/UMass",
+		"lat": 42.320685,
+		"lng": -71.052391
+	},
+	{
+		"name": "North Quincy",
+		"lat": 42.275275,
+		"lng": -71.029583
+	},
+	{
+		"name": "Wollaston",
+		"lat": 42.2665139,
+		"lng": -71.0203369
+	},
+	{
+		"name": "Quincy Center",
+		"lat": 42.251809,
+		"lng": -71.005409
+	},
+	{
+		"name": "Quincy Adams",
+		"lat": 42.233391,
+		"lng": -71.007153
+	},
+	{
+		"name": "Braintree",
+		"lat": 42.2078543,
+		"lng": -71.0011385
+	}
+]
