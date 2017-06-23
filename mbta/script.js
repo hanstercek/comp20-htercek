@@ -33,7 +33,7 @@ function initMap() {
 
 	function placeMarker(station, oldStation, color) {
 		var latLng = new google.maps.LatLng(station.lat, station.lng);
-		getDistance(station.lat, station.lng);
+		//getDistance(station.lat, station.lng);
 		var stop = new google.maps.Marker({
 			name: station.name,
 			position: latLng,
@@ -58,6 +58,7 @@ function initMap() {
 		};
 	}
 
+	// Sets global variables to find nearest station & distance, but fails to interpret inputs properly?
 	function getDistance(lat, lng) {
 		var latLng = new google.maps.LatLng(lat, lng);
 		var testDistance = google.maps.geometry.spherical.computeDistanceBetween(latLng, myPos);
@@ -70,13 +71,13 @@ function initMap() {
 		};
 	}
 
+	// Returns content for infowindows. Doesn't return properly (can't figure out asycnchronous loading), but outputs to console well
 	function getStationData(station) {
 		request = new XMLHttpRequest();
 		request.open("GET", "https://defense-in-derpth.herokuapp.com/redline.json", true);
 		request.onreadystatechange = function() {
 			if (request.readyState == 4 && request.status == 200) {
 				var data = JSON.parse(request.responseText);
-				console.log(data.TripList);
 				var content = findData(data, station);
 				console.log(content);		// For some reason this isn't returning properly
 				return content;
@@ -105,7 +106,6 @@ function initMap() {
 			console.log("Getting location...");
 			navigator.geolocation.getCurrentPosition(function(position) {
 				myPos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-				console.log(myPos["lat"]);
 				map.panTo(myPos);
 				myMarker = new google.maps.Marker({
 					position: myPos,
