@@ -66,7 +66,7 @@ function init() {
 		google.maps.event.addListener(marker, 'click', function() {
 			var theMarker = this;
 			var request = new XMLHttpRequest();
-			request.open("GET", "https://afternoon-lake-89931.herokuapp.com/redline.json", true);
+			request.open("GET", "https://hydro-chesterfield-96568.herokuapp.com/redline.json", true);
 			request.onreadystatechange = function() {
 				if (request.readyState == 4 && request.status == 200) {
 					schedule = JSON.parse(request.responseText);
