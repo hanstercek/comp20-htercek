@@ -1,125 +1,173 @@
-function initMap() {
-	var infowindow = new google.maps.InfoWindow();
-	var nearestStation = '';
-	var nearestPos;
-	var nearestDistance = 999;
-	var myPos;
+var myLat = 42.352271;
+var myLng = -71.05524200000001;
+var me = new google.maps.LatLng(myLat, myLng); // default to South Station
+var myOptions = {
+	zoom: 13, // The larger the zoom number, the bigger the zoom
+	center: me,
+	mapTypeId: google.maps.MapTypeId.ROADMAP
+};
+var map;
+var infowindow = new google.maps.InfoWindow();
+var stations = [
+	{"station_name":"Alewife", "latitude":42.395428, "longitude":-71.142483},
+	{"station_name":"Davis", "latitude":42.39674, "longitude":-71.121815},
+	{"station_name":"Porter Square", "latitude":42.3884, "longitude":-71.11914899999999},
+	{"station_name":"Harvard Square", "latitude":42.373362, "longitude":-71.118956,},
+	{"station_name":"Central Square", "latitude":42.365486, "longitude":-71.103802},
+	{"station_name":"Kendall/MIT", "latitude":42.36249079, "longitude":-71.08617653},
+	{"station_name":"Charles/MGH", "latitude":42.361166, "longitude":-71.070628},
+	{"station_name":"Park Street", "latitude":42.35639457, "longitude":-71.0624242},
+	{"station_name":"Downtown Crossing", "latitude":42.355518, "longitude":-71.060225},
+	{"station_name":"South Station", "latitude":42.352271, "longitude":-71.05524200000001},
+	{"station_name":"Broadway", "latitude":42.342622, "longitude":-71.056967},
+	{"station_name":"Andrew", "latitude":42.330154, "longitude":-71.057655},
+	{"station_name":"JFK/UMass", "latitude":42.320685, "longitude":-71.052391},	// 12 [indexed @ 0]
+	{"station_name":"Savin Hill", "latitude":42.31129, "longitude":-71.053331},
+	{"station_name":"Fields Corner", "latitude":42.300093, "longitude":-71.061667},
+	{"station_name":"Shawmut", "latitude":42.29312583, "longitude":-71.06573796000001},
+	{"station_name":"Ashmont", "latitude":42.284652, "longitude":-71.06448899999999},
+	{"station_name":"North Quincy", "latitude":42.275275, "longitude":-71.029583},	// 17 [indexed @ 0]
+	{"station_name":"Wollaston", "latitude":42.2665139, "longitude":-71.0203369},
+	{"station_name":"Quincy Center", "latitude":42.251809, "longitude":-71.005409},
+	{"station_name":"Quincy Adams", "latitude":42.233391, "longitude":-71.007153},
+	{"station_name":"Braintree", "latitude":42.2078543, "longitude":-71.0011385}
+];
+var stationMarkers = [];
 
-	map = new google.maps.Map(document.getElementById('map-canvas'), {
-		center: {lat: 42.352271, lng: -71.05524200000001},
-		zoom: 13
-	});
-	drawMe();
-	initStops();
-
-	function initStops() {
-		drawStops('redline.json');
-		drawStops('redline2.json');
-	}
-
-	function drawStops(filename) {
-		var request = new XMLHttpRequest();
-		request.open("GET", filename, true);
-		request.onreadystatechange = function() {
-			if (request.readyState ==4 && request.status ==200) {
-				var data = JSON.parse(request.responseText);
-				for (var i = 1; i < data.length; i++) {
-					placeMarker(data[i], data[i-1], data[0]);
-				};
-			};
-		};
-		request.send();
-	}
-
-	function placeMarker(station, oldStation, color) {
-		var latLng = new google.maps.LatLng(station.lat, station.lng);
-		//getDistance(station.lat, station.lng);
-		var stop = new google.maps.Marker({
-			name: station.name,
+function init() {
+	map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	console.log("INIT");
+	for (var count = 0; count < stations.length; count++) {
+		var latLng = new google.maps.LatLng(stations[count].latitude,stations[count].longitude);
+		marker = new google.maps.Marker({
 			position: latLng,
-			icon: 'stop.png',
-			map: map
+			title: stations[count].station_name,
+			icon: "t_icon.png" 
 		});
-		google.maps.event.addListener(stop, 'click', function() {
-			infowindow.close();
-			infowindow.setContent(getStationData(this));
-			infowindow.open(map, this);
-		});
-		if (oldStation != color) {
-			oldLatLng = new google.maps.LatLng(oldStation.lat, oldStation.lng);
+		// Draw Route
+		console.log("Drawing Route");
+		if (count != 0) {
+			if (count == 17) {
+				var oldLatLng = new google.maps.LatLng(stations[12].latitude, stations[12].longitude);
+			} else {
+				var oldLatLng = new google.maps.LatLng(stations[count-1].latitude, stations[count-1].longitude);
+			}
 			var route = new google.maps.Polyline({
-				path: [oldLatLng, latLng],
-				geodesic: true,
-				strokeColor: color.color,
-				strokeOpacity: 1.0,
-				strokeWeight: 8
-			});
+					path: [oldLatLng, latLng],
+					geodesic: true,
+					strokeColor: "#FF0000",
+					strokeOpacity: 1.0,
+					strokeWeight: 8
+				});
 			route.setMap(map);
 		};
+
+		// Clicking on marker will load real time schedule for station
+		google.maps.event.addListener(marker, 'click', function() {
+			var theMarker = this;
+			var request = new XMLHttpRequest();
+			request.open("GET", "https://afternoon-lake-89931.herokuapp.com/redline.json", true);
+			request.onreadystatechange = function() {
+				if (request.readyState == 4 && request.status == 200) {
+					schedule = JSON.parse(request.responseText);
+					var textForMarker = "<h1>" + theMarker.getTitle() + "</h1><ul>";
+					var entries = []
+					for (var trip = 0; trip < schedule.TripList.Trips.length; trip++) {
+						destination = schedule.TripList.Trips[trip].Destination;
+						for (var stop = 0; stop < schedule.TripList.Trips[trip].Predictions.length; stop++) {
+							// We only care about the stations that was clicked on (i.e., theMarker)
+							if (schedule.TripList.Trips[trip].Predictions[stop].Stop == theMarker.getTitle()) {
+								entries.push({"destination":destination,"predicted_arrival":schedule.TripList.Trips[trip].Predictions[stop].Seconds});
+							}
+						}
+					}
+
+					// Sort the schedule for station; https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value-in-javascript
+					function compare(a, b) {
+						if (a.predicted_arrival < b.predicted_arrival) {
+							return -1;
+						}
+						if (a.predicted_arrival > b.predicted_arrival) {
+							return 1;
+						}
+						return 0;
+					}
+					entries.sort(compare);
+					if (entries.length == 0) {
+						textForMarker += "<li>No upcoming trains.</li>";
+					}
+					else {
+						for (count = 0; count < entries.length; count++) {
+							textForMarker += "<li>Next " + entries[count].destination + " bound train will arrive in approximately " + Math.trunc(entries[count].predicted_arrival / 60) + " min.</li>"; 
+						}
+					}
+					textForMarker += "</ul>";
+					infowindow.setContent(textForMarker);
+					infowindow.open(map, theMarker);
+				}
+				else if (request.readyState == 4 && request.status == 500) {
+					infowindow.setContent("Whoops, something went terribly wrong!");
+					infowindow.open(map, marker);
+				}
+			}
+			request.send();
+		});
+		stationMarkers.push(marker);
+		marker.setMap(map);
 	}
+	getMyLocation();
+}
 
-	// Sets global variables to find nearest station & distance, but fails to interpret inputs properly?
-	function getDistance(lat, lng) {
-		var latLng = new google.maps.LatLng(lat, lng);
-		var testDistance = google.maps.geometry.spherical.computeDistanceBetween(latLng, myPos);
-		testDistance = Math.floor(testDistance / 1.60934) / 1000;	// Convert to miles and 3 decimals
-		testDistance.toFixed(3);
-		if (testDistance < minDistance) {
-			nearestPos = latLng;
-			nearestStation = currStation.name;
-			nearestDistance = testDistance;
-		};
+function getMyLocation() {
+	if (navigator.geolocation) { // the navigator.geolocation object is supported on your browser
+		navigator.geolocation.getCurrentPosition(function(position) {
+			myLat = position.coords.latitude;
+			myLng = position.coords.longitude;
+			updateMap();
+		});
 	}
-
-	// Returns content for infowindows. Doesn't return properly (can't figure out asycnchronous loading), but outputs to console well
-	function getStationData(station) {
-		request = new XMLHttpRequest();
-		request.open("GET", "https://defense-in-derpth.herokuapp.com/redline.json", true);
-		request.onreadystatechange = function() {
-			if (request.readyState == 4 && request.status == 200) {
-				var data = JSON.parse(request.responseText);
-				var content = findData(data, station);
-				console.log(content);		// For some reason this isn't returning properly
-				return content;
-			};
-		};
-		request.send();
+	else {
+		alert("Geolocation is not supported by your web browser.  What a shame!");
 	}
+}
 
-
-	function findData(data, station) {
-		var currMin = 999;
-		var destination = "";
-		for (var i = 0; i < data.TripList.Trips.length; i++) {
-			for (var j = 0; j < data.TripList.Trips[i].Predictions.length; j++) {
-				if (data.TripList.Trips[i].Predictions[j].Stop == station.name && data.TripList.Trips[i].Predictions[j].Seconds < currMin) {
-					currMin = data.TripList.Trips[i].Predictions[j].Seconds;
-					destination = data.TripList.Trips[i].Destination;
-				};
-			};
-		};
-		return '<p>Station: ' + station.name + '<br />Next Train In: ' + currMin + ' seconds <br />Destination: ' + destination + '</p>';
-	}
-
-	function drawMe() {
-		if (navigator.geolocation) {
-			console.log("Getting location...");
-			navigator.geolocation.getCurrentPosition(function(position) {
-				myPos = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-				map.panTo(myPos);
-				myMarker = new google.maps.Marker({
-					position: myPos,
-					map: map
-				});
-
-				google.maps.event.addListener(myMarker, 'click', function() {
-					infowindow.close();
-					infowindow.setContent(getClosestStation(myPos));
-					infowindow.open(map, this);
-				});
-			});
-		} else {
-			alert("Geolocation is not supported by your web browser.");
+function updateMap() {
+	me = new google.maps.LatLng(myLat, myLng);
+	
+	// Update map to pan to my location
+	map.panTo(me);
+	
+	// Create marker of where I am and calculate the closest Red Line station to where I am
+	var closestStation = stationMarkers[0];
+	var closestDistance = google.maps.geometry.spherical.computeDistanceBetween(me, closestStation.getPosition());
+	for (count = 1; count < stationMarkers.length; count++) {
+		var tempDistance = google.maps.geometry.spherical.computeDistanceBetween(me, stationMarkers[count].getPosition());
+		if (closestDistance > tempDistance) {
+			closestDistance = tempDistance;
+			closestStation = stationMarkers[count];
 		}
 	}
+	marker = new google.maps.Marker({
+		position: me,
+		title: "The closest MBTA Red Line station is " + closestStation.getTitle() + " which is " + closestDistance * 0.000621371 + " miles away"
+	});
+	marker.setMap(map);
+	infowindow.setContent(marker.title);
+	infowindow.open(map, marker);
+
+	// Open info window on click of marker
+	google.maps.event.addListener(marker, 'click', function() {
+		infowindow.setContent(marker.title);
+		infowindow.open(map, marker);
+	});
+
+	// Draw polyline connecting where you are to closest station
+	var closestPath = new google.maps.Polyline({
+		path: [me, closestStation.getPosition()],
+		geodesic: true,
+		strokeColor: '#FF0000',
+		strokeOpacity: 1.0,
+		strokeWeight: 2
+	});
+	closestPath.setMap(map);
 }
