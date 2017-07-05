@@ -1,0 +1,44 @@
+body {
+	margin-top: 3rem;
+	margin-bottom: 3rem;
+}
+
+hr {
+	margin-top: .5rem;
+	margin-bottom: .75rem;
+}
+
+h1, h3, h5 {
+	margin-bottom: .5rem;
+}
+
+.high {
+	font-weight: bold;
+	color: red;
+}
+
+.medium {
+	font-weight: bold;
+	color: gold;
+}
+
+.mild {
+	font-weight: bold;
+	color: green;
+}
+
+.image, img {
+	text-align: center;
+	max-height: 200px;
+	width: auto;
+	max-width: 100%;
+}
+
+img {
+	border: 1px solid #bbb;
+	border-radius: 4px;
+}
+
+.row {
+	margin-bottom: 2rem;
+}

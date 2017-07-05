@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="styles/normalize.css" type="text/css" />
+		<link rel="stylesheet" href="styles/skeleton.css" type="text/css" />
+		<link rel="stylesheet" href="styles/style.css" type="text/css" />
+		<title>Hans Tercek Lab 13</title>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Not Foursquare Security Assessment</h1>
+			<p>By <a href="https://hanstercek.github.io/">Hans Tercek</a> for Tufts University COMP 20 -- Summer 2017</p>
+			<h3>Introduction</h3>
+			<hr />
+			<p><a href="https://defense-in-derpth.herokuapp.com/">Not Foursquare</a> has hired us to run a security assessment on their platform. Not Foursquare is a network in which users may check-in at local businesses or venues. Not Foursquare keeps a running log of all check-ins to allow users to track where they have been.
+			<br />
+			As part of this assessment, the platform has been analyzed for any potential security flaws that may result in an altered user experience, expose the user to harm, or affect the overall performance of the platform. </p>
+
+			<h3>Methodology</h3>
+			<hr />
+			<p>Testing was carried out using the <code>curl</code> operation and browser data submission. All available inputs were tested for vulnerabilities through data submission to determine if the platform is subsceptible to attack. Scripts were additionally written to determine if the platform can fall prey to DOS attacks.</p>
+
+			<h3>Abstract of Findings</h3>
+			<hr />
+			<p>As with many online services, Not Foursquare's largest fault lies in its failure to properly inputs. This puts the very core of the platform - the database - at risk to attackers. Through improper submissions, attackers are able to gain access to all stored data and launch attacks on users. Furthermore, the server's inherent structure makes it easy to access extraneous information, making the platform additionally succeptible to data leaks.</p>
+
+			<h3>Issues Found &amp; Analysis</h3>
+			<hr />
+			<h6>
+			<ol>
+				<li>
+					Poorly Stored Data
+					<ul>
+						<li>Affects: Server's <code>/sendLocation</code> method.</li>
+						<li>Severity: <span class="medium">Medium</span></li>
+						<li>Data is stored in such a way that a simple input returns the contents of the entire database. Upon submission of data into the database, all previously stored entries are returned, regardless of user. The simple input <code> curl --data "login=user&amp;lat=1&amp;lng=1" http://localhost:3000/sendlocation</code> returns every data entry. This represents a fundamental design flaw within the platform. While this might be a design feature, user data should not be so easy to obtain.</li>
+						<li>A proposed fix for this is a restructuring of the <code>/sendlocation</code> method such that data is not returned to the user and all data handling processes are done internally.</li>
+					</ul>
+				</li>
+				<div class="row">
+					<div class="twelve columns image"><img src="images/curl_all_data.png" alt="curl returning all data" title="All data outputs on single input" /></div>
+				</div>
+				<li>
+					Cross-Site Scripting
+					<ul>
+						<li>Affects: Server's <code>/sendLocation</code> and <code>/</code> method.</li>
+						<li>Severity: <span class="high">High</span></li>
+						<li>Due to a lack of input sterilization, foreign scripting is easily injected into the Node.js server</li>
+						<pre><code>curl --data "login=&lt;iframe src='http://omfgdogs.com'&gt;&lt;/iframe&gt;&amp;lat=1&amp;lng=1" http://localhost:3000/sendlocation</code></pre>
+						<li>The above code allowed for an iframe to be created within the database. This iframe is then served whenever the data is queried (i.e. at <code>index.html</code>), exposing future users to potential security risks.</li>
+						<li>This represents an incredibly high risk to the user. To remedy this, all inputs should be sanitized and any and all brackets, braces, or non alpha-numeric characters should be striped from input.</li>
+						<pre><code>str.match(/[\d\w\s\]|[\~\!\@\#\$\^\*\-\_\+\;\&lt;\&gt;]*/g).join('');</code></pre>
+					</ul>
+				</li>
+				<div class="row">
+					<div class="twelve columns image"><img src="images/injected_data.png" alt="Injected iframe" title="iframes can be injected easily" /></div>
+				</div>
+				<li>
+					Database Overload DOS
+					<ul>
+						<li>Affects: Server's <code>/sendLocation</code> method.</li>
+						<li>Severity: <span class="mild">Low</span></li>
+						<li>Using a simple Python script, I was able to automate a curl process to continually push data to the server. Eventually, the server struggled to keep up with the load, effectively rendering it useless.</li>
+						<pre><code>simpleDos.py:
+import subprocess
+from time import sleep
+while (1):
+  subprocess.call('curl --data "login=name&amp;lat=1&amp;lng=1" http://localhost:3000/sendlocation', shell=True)
+  sleep(0.1)</code></pre>
+  						<li>Such an issue can be solved by adding time restrictions on access from the same users (by comparing entry timestamps from a user's submissions) or implementing a refresh period for data aquisition. The former is preferred as it imposes restrictions on a single user rather than the entire network.</li>
+  					</ul>
+  				<li>
+  					Improper Database Access
+  					<ul>
+						<li>Affects: Server's <code>/checkins.json</code> method.</li>
+						<li>Severity: <span class="high">High</span></li>
+  						<li>By submitting information that contains MongoDB operations (such as <code>$ne</code>), an attacker can easily gain access to the entire database.</li>
+  						<pre><code>http://localhost:3000/checkins.json?login[$ne]=foo</code></pre>
+  						<li>The above entry gave me access to the entire database, returning JSON check-in data for all users</li>
+  						<li>This represents a large issue as it compromises the security of user data. To avoid such leaks, all inputs should be properly sanitized. The current search validation method (below) is hugely inadequate at removing illicit queries. It should be replaced with a sterilization method similar to cross-site scripting's prevention.</li>
+  						<pre><code>if (loginEntry != undefined || loginEntry != null) {</code></pre>
+  					</ul>
+  				</li>
+				<div class="row">
+					<div class="twelve columns image"><img src="images/checkins_all_data.png" alt="DB queried for all data" title="Database can be tricked into returning all user data on improper login" /></div>
+				</div>
+			</ol>
+			</h6>
+			<h3>Conclusion</h3>
+			<hr />
+			<p>With the current architecture, Not Foursquare is too vulnerable to outside attacks. It is of the utmost importance that the above issues are resolved immediately before any long-term damage is inflicted upon the users and the reputation of the company. The simplest solution for the majority of the server's issues lies in input sanitation. Filtering out all escaping characters from user input should prevent most major data leaks and user security vulnerabilities. Following an update to the platform's structure, additional security testing should take place to ensure no additional issues are encountered.</p>
+		</div>
+	</body>
+</html>
